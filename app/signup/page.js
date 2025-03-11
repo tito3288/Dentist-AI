@@ -1,8 +1,18 @@
 "use client";
 import { useState } from "react";
-import { auth, db } from "../lib/firebase";
+import { auth, db } from "../../lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+
+// ✅ Helper function to validate URLs
+const isValidURL = (string) => {
+  try {
+    const url = new URL(string);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch (_) {
+    return false;
+  }
+};
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -18,6 +28,15 @@ export default function Signup() {
     setLoading(true);
     setError(null);
 
+    // ✅ Check if website is a valid URL
+    if (!isValidURL(website)) {
+      setError(
+        "Please enter a valid business website URL (e.g., https://yourclinic.com)"
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -31,7 +50,7 @@ export default function Signup() {
         email,
         website,
         city,
-        services, // ✅ This is important for auto-query generation
+        services, // ✅ Services are stored for API queries
       });
 
       alert("Account created successfully! Redirecting to dashboard...");
@@ -67,7 +86,7 @@ export default function Signup() {
           />
           <input
             type="text"
-            placeholder="Business Website"
+            placeholder="Business Website (https://yourclinic.com)"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             className="w-full p-2 border rounded"
@@ -96,6 +115,12 @@ export default function Signup() {
             {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
+        <p className="text-center mt-4">
+          Already have an account?{" "}
+          <a href="/signin" className="text-blue-500 underline">
+            Sign In
+          </a>
+        </p>
       </div>
     </div>
   );
